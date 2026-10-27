@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="hi" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PRIYANKA AI – Realistic Personal AI Assistant</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans Devanagari"', '"Outfit"', 'sans-serif'],
+          },
+          colors: {
+            priyanka: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              500: '#f43f5e',
+              600: '#e11d48',
+              900: '#881337',
+            }
+          },
+          animation: {
+            'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'wave': 'soundWave 1.2s ease-in-out infinite',
+            'subtle-breathe': 'breathe 4s ease-in-out infinite',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+              '50%': { opacity: '0.9', transform: 'scale(1.05)' },
+            },
+            soundWave: {
+              '0%, 100%': { height: '8px' },
+              '50%': { height: '28px' },
+            },
+            breathe: {
+              '0%, 100%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.015)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom video call overlay effects */
+    .glass-panel {
+      background: rgba(18, 24, 38, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .glass-button {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      transition: all 0.2s ease;
+    }
+    .glass-button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+    .glass-button:active {
+      transform: translateY(1px);
+    }
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(244, 63, 94, 0.4);
+      border-radius: 9999px;
+    }
+    /* Waveform canvas */
+    #waveCanvas {
+      width: 100%;
+      height: 48px;
+    }
+    /* Realistic Portrait Video & Avatar Container */
+    .avatar-video-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #1f2937 0%, #0b0f19 100%);
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 font-sans select-none overflow-hidden antialiased">
+
+  <!-- Main Viewport: Video Call Layout (Responsive Mobile & Desktop) -->
+  <div class="relative w-full h-full flex flex-col justify-between overflow-hidden">
+    
+    <!-- TOP STATUS BAR: Video Call Header -->
+    <header class="absolute top-0 left-0 right-0 z-30 p-4 sm:p-5 flex items-center justify-between glass-panel border-b border-white/10">
+      <div class="flex items-center space-x-3">
+        <!-- Caller Profile Picture & Live Tag -->
+        <div class="relative">
+          <div class="w-11 h-11 rounded-full ring-2 ring-rose-500 overflow-hidden shadow-lg bg-slate-800 cursor-pointer" onclick="openPhotoUploader()" title="फोटो बदलने के लिए क्लिक करें">
+            <img id="headerProfilePic" src="WhatsApp%20Image%202026-10-27%20at%2012.12.52%20PM.jpeg" 
+                 onerror="this.src='https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80'"
+                 alt="Priyanka Profile" class="w-full h-full object-cover">
+          </div>
+          <span id="statusIndicatorDot" class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-wide text-white">Priyanka AI</h1>
+            <span class="text-[11px] bg-rose-500/20 text-rose-300 font-medium px-2 py-0.5 rounded-full border border-rose-500/30">
+              Personal AI
+            </span>
+          </div>
+          <p id="callStatusText" class="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+            लाइव वीडियो कॉल • तैयार है
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Icons: Settings, Tasks, Docs, Guide -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <button id="changePhotoBtn" title="फोटो बदलें (Upload Photo / DP)" class="glass-button p-2.5 rounded-full text-rose-300 hover:text-white" onclick="toggleModal('photoModal')">
+          <i class="fa-solid fa-camera text-sm sm:text-base"></i>
+        </button>
+        <button id="openTasksBtn" title="कार्यों की सूची (Tasks & Reminders)" class="glass-button p-2.5 rounded-full text-slate-200 hover:text-white" onclick="toggleModal('tasksModal')">
+          <i class="fa-solid fa-list-check text-sm sm:text-base"></i>
+        </button>
+        <button id="openDocsBtn" title="बनाया गया डॉक्यूमेंट देखें" class="glass-button p-2.5 rounded-full text-slate-200 hover:text-white relative" onclick="toggleModal('docsModal')">
+          <i class="fa-solid fa-file-lines text-sm sm:text-base"></i>
+          <span id="docBadge" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full"></span>
+        </button>
+        <button id="openGuideBtn" title="तकनीकी गाइड और APK जानकारी" class="glass-button p-2.5 rounded-full text-slate-200 hover:text-white" onclick="toggleModal('guideModal')">
+          <i class="fa-solid fa-circle-info text-sm sm:text-base"></i>
+        </button>
+        <button id="openSettingsBtn" title="सेटिंग्स (API & Voice)" class="glass-button p-2.5 rounded-full text-slate-200 hover:text-white" onclick="toggleModal('settingsModal')">
+          <i class="fa-solid fa-gear text-sm sm:text-base"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- CENTER: REALISTIC TALKING AVATAR VIDEO CALL DISPLAY -->
+    <main class="relative w-full h-full flex items-center justify-center overflow-hidden">
+      
+      <!-- Video / Interactive Canvas Area -->
+      <div class="avatar-video-wrapper w-full h-full">
+        
+        <!-- Live Video Element (Ready for WebRTC Streaming Services like HeyGen / Simli / D-ID) -->
+        <video id="webrtcRemoteVideo" autoplay playsinline class="hidden absolute inset-0 w-full h-full object-cover z-10"></video>
+
+        <!-- Dynamic Photorealistic Canvas Avatar (Zero Cost Standalone Real-time Lip-sync & Expression Engine) -->
+        <div id="interactiveAvatarContainer" class="relative w-full h-full max-w-4xl mx-auto flex items-center justify-center">
+          
+          <!-- Background Ambient Studio Lighting effect -->
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/70 z-10 pointer-events-none"></div>
+
+          <!-- Human Realistic Avatar Canvas with Micro-movements, Head tilts & Dynamic Mouth Morphing -->
+          <canvas id="avatarCanvas" class="relative z-0 max-h-full max-w-full object-contain filter drop-shadow-2xl animate-subtle-breathe"></canvas>
+
+          <!-- Status Pill Overlay on Video -->
+          <div class="absolute top-24 left-1/2 -translate-x-1/2 z-20">
+            <div id="stateBadge" class="px-3.5 py-1.5 rounded-full glass-panel border border-white/20 text-xs sm:text-sm font-medium tracking-wide flex items-center gap-2 shadow-2xl transition-all duration-300">
+              <span id="stateIcon" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              <span id="stateText" class="text-slate-200">आपकी बात सुनने के लिए तैयार</span>
+            </div>
+          </div>
+
+          <!-- Live Captions Bubble (Appears when Priyanka is speaking or thinking) -->
+          <div id="speechBubble" class="hidden absolute bottom-36 sm:bottom-32 left-4 right-4 sm:left-auto sm:right-auto sm:max-w-xl z-20 mx-auto glass-panel p-4 rounded-2xl border border-rose-500/30 shadow-2xl">
+            <div class="flex items-start gap-3">
+              <span class="text-rose-400 text-lg mt-0.5"><i class="fa-solid fa-quote-left"></i></span>
+              <p id="speechBubbleText" class="text-sm sm:text-base text-slate-100 font-normal leading-relaxed overflow-y-auto max-h-28"></p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Self View Floating Window (PIP camera simulation) -->
+        <div class="absolute top-24 right-4 z-20 w-24 h-32 sm:w-32 sm:h-44 rounded-xl overflow-hidden glass-panel border border-white/20 shadow-2xl flex flex-col items-center justify-center group">
+          <div id="userCamPlaceholder" class="w-full h-full bg-slate-800 flex flex-col items-center justify-center p-2 text-center text-slate-400">
+            <i class="fa-solid fa-user text-2xl mb-1 text-slate-300"></i>
+            <span class="text-[10px]">आपका कैमरा</span>
+          </div>
+          <video id="userSelfVideo" autoplay muted playsinline class="hidden w-full h-full object-cover"></video>
+          <button id="toggleUserCamBtn" onclick="toggleUserCamera()" class="absolute bottom-1 right-1 p-1.5 rounded-full bg-black/60 text-white text-xs hover:bg-black/90">
+            <i class="fa-solid fa-video"></i>
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- BOTTOM CONTROL BAR: Real Call Actions (Microphone, Stop, Repeat, Chat Drawer) -->
+    <footer class="absolute bottom-0 left-0 right-0 z-30 p-4 sm:p-6 glass-panel border-t border-white/10">
+      
+      <!-- Live Audio Waveform (Visible during active speaking or listening) -->
+      <div id="waveformContainer" class="w-full max-w-md mx-auto mb-3 flex items-center justify-center h-8">
+        <canvas id="waveCanvas"></canvas>
+      </div>
+
+      <!-- Call Action Controls -->
+      <div class="flex items-center justify-center gap-3 sm:gap-5 max-w-lg mx-auto">
+        
+        <!-- Interrupt / Stop Speaking Button -->
+        <button id="stopSpeakBtn" onclick="stopPriyankaSpeech()" title="Priyanka को चुप कराएं (Stop Speaking)" 
+                class="glass-button w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-slate-300 hover:text-white hover:bg-amber-600/30 border-amber-500/30">
+          <i class="fa-solid fa-hand text-lg sm:text-xl text-amber-400"></i>
+        </button>
+
+        <!-- Repeat Last Answer Button -->
+        <button id="repeatBtn" onclick="repeatLastAnswer()" title="पिछला जवाब दोबारा सुनें" 
+                class="glass-button w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-slate-300 hover:text-white">
+          <i class="fa-solid fa-rotate-right text-lg sm:text-xl"></i>
+        </button>
+
+        <!-- MAIN MIC BUTTON (Large Interactive Centerpiece) -->
+        <button id="mainMicBtn" onclick="toggleVoiceInput()" 
+                class="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center bg-gradient-to-tr from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white shadow-xl shadow-rose-600/40 ring-4 ring-rose-500/20 active:scale-95 transition-all duration-200">
+          <span id="micRingPulse" class="hidden absolute inset-0 rounded-full bg-rose-400 animate-ping opacity-30"></span>
+          <i id="micIcon" class="fa-solid fa-microphone text-2xl sm:text-3xl"></i>
+        </button>
+
+        <!-- Chat / Text Message Drawer Toggle -->
+        <button id="openChatBtn" onclick="toggleModal('chatDrawer')" title="टेक्स्ट मैसेजिंग खोलें" 
+                class="glass-button w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-slate-300 hover:text-white">
+          <i class="fa-solid fa-message text-lg sm:text-xl"></i>
+        </button>
+
+        <!-- End Call / Reset Conversation -->
+        <button id="endCallBtn" onclick="endCallAndReset()" title="कॉल समाप्त व रीसेट करें" 
+                class="glass-button w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center bg-red-600/40 hover:bg-red-600 text-red-200 hover:text-white border-red-500/40">
+          <i class="fa-solid fa-phone-slash text-lg sm:text-xl"></i>
+        </button>
+
+      </div>
+
+      <!-- Quick Hindi Voice Prompts Carousel -->
+      <div class="mt-3 flex items-center justify-center gap-2 overflow-x-auto no-scrollbar py-1 text-xs text-slate-300">
+        <span class="text-rose-400 font-semibold text-[11px] shrink-0">सुझाव:</span>
+        <button onclick="sendQuickPrompt('नमस्ते प्रियंका, आप कौन हैं और क्या कर सकती हैं?')" class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 whitespace-nowrap">"आप कौन हैं?"</button>
+        <button onclick="sendQuickPrompt('Priyanka, YouTube खोलो और गाने लगाओ')" class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 whitespace-nowrap">"YouTube खोलो"</button>
+        <button onclick="sendQuickPrompt('Priyanka, आज के कामों की लिस्ट बनाओ')" class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 whitespace-nowrap">"टास्क लिस्ट बनाओ"</button>
+        <button onclick="sendQuickPrompt('Priyanka, मेरे लिए एक बिजनेस ईमेल ड्राफ्ट करो')" class="px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 whitespace-nowrap">"बिजनेस ईमेल लिखो"</button>
+      </div>
+
+    </footer>
+
+    <!-- MODAL 1: TEXT CHAT DRAWER -->
+    <div id="chatDrawer" class="hidden fixed inset-y-0 right-0 z-40 w-full sm:w-96 glass-panel border-l border-white/10 flex flex-col shadow-2xl transition-transform duration-300">
+      <div class="p-4 border-b border-white/10 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i class="fa-solid fa-comments text-rose-500"></i>
+          <h2 class="font-bold text-white text-base">बातचीत का इतिहास (Chat Log)</h2>
+        </div>
+        <button onclick="toggleModal('chatDrawer')" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Chat Messages Container -->
+      <div id="chatHistory" class="flex-1 overflow-y-auto p-4 space-y-3">
+        <!-- Messages will be dynamically rendered here -->
+      </div>
+
+      <!-- Chat Input Field -->
+      <div class="p-3 border-t border-white/10 bg-slate-900/60 flex items-center gap-2">
+        <input id="chatTextInput" type="text" placeholder="हिंदी या Hinglish में लिखें..." 
+               class="flex-1 bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-rose-500"
+               onkeypress="handleChatKeyPress(event)">
+        <button onclick="sendTextMessage()" class="p-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl">
+          <i class="fa-solid fa-paper-plane text-sm"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL 2: TASKS & AUTOMATION REMINDERS -->
+    <div id="tasksModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div class="glass-panel w-full max-w-lg rounded-2xl border border-white/20 p-5 shadow-2xl flex flex-col max-h-[85vh]">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-list-check text-rose-400 text-lg"></i>
+            <h3 class="text-lg font-bold text-white">टास्क और रिमाइंडर्स (Tasks & Reminders)</h3>
+          </div>
+          <button onclick="toggleModal('tasksModal')" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-300 mt-2">
+          Priyanka से सीधे आवाज़ में कहें: <em>"Priyanka, शाम 5 बजे मीटिंग का रिमाइंडर लगाओ"</em> या यहाँ मैन्युअल रूप से जोड़ें।
+        </p>
+
+        <!-- New Task Input -->
+        <div class="mt-4 flex gap-2">
+          <input id="newTaskInput" type="text" placeholder="नया कार्य लिखें (उदा. क्लाइंट को कॉल करना)..."
+                 class="flex-1 bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-rose-500">
+          <button onclick="addTaskFromInput()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-medium">
+            जोड़ें
+          </button>
+        </div>
+
+        <!-- Task List Items -->
+        <div id="taskList" class="flex-1 overflow-y-auto mt-4 space-y-2 pr-1">
+          <!-- Dynamically populated tasks -->
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-4 pt-3 border-t border-white/10 flex justify-between items-center text-xs">
+          <span id="taskCountText" class="text-slate-400">0 कार्य शेष</span>
+          <button onclick="clearCompletedTasks()" class="text-rose-400 hover:text-rose-300 underline">
+            पूर्ण कार्य हटाएं
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: GENERATED DOCUMENTS & PDF VIEWER -->
+    <div id="docsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div class="glass-panel w-full max-w-2xl rounded-2xl border border-white/20 p-5 shadow-2xl flex flex-col max-h-[85vh]">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-file-contract text-rose-400 text-lg"></i>
+            <h3 class="text-lg font-bold text-white">तैयार की गई रिपोर्ट / PDF दस्तावेज़</h3>
+          </div>
+          <button onclick="toggleModal('docsModal')" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div id="docContentArea" class="flex-1 overflow-y-auto mt-4 p-4 rounded-xl bg-slate-900 border border-white/10 text-slate-200 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+          कोई दस्तावेज़ तैयार नहीं है। प्रियंका से कहें: "मेरे लिए एक बिजनेस प्रपोजल या रिपोर्ट तैयार करो।"
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-white/10 flex justify-end gap-3">
+          <button onclick="copyDocContent()" class="glass-button px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-1.5">
+            <i class="fa-solid fa-copy"></i> कॉपी करें
+          </button>
+          <button onclick="printOrExportPDF()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs sm:text-sm font-medium flex items-center gap-1.5">
+            <i class="fa-solid fa-print"></i> प्रिंट / PDF सेव करें
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 4: SETTINGS & API CONFIGURATION -->
+    <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div class="glass-panel w-full max-w-lg rounded-2xl border border-white/20 p-5 shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-sliders text-rose-400 text-lg"></i>
+            <h3 class="text-lg font-bold text-white">Priyanka AI सेटिंग्स</h3>
+          </div>
+          <button onclick="toggleModal('settingsModal')" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="mt-4 space-y-4 text-sm">
+          
+          <!-- Gemini API Key configuration (Zero cost default provided automatically) -->
+          <div class="p-3 rounded-xl bg-slate-900 border border-white/10">
+            <label class="block font-medium text-white mb-1">
+              Google Gemini API Key (वैकल्पिक):
+            </label>
+            <p class="text-xs text-slate-400 mb-2">
+              Gemini 3 Flash फ्री टियर का उपयोग करता है। यदि आपके पास अपनी की (Key) है, तो यहाँ दर्ज करें:
+            </p>
+            <input id="userApiKeyInput" type="password" placeholder="AIzaSy..." 
+                   class="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-rose-500">
+          </div>
+
+          <!-- Video Avatar Provider Mode -->
+          <div class="p-3 rounded-xl bg-slate-900 border border-white/10">
+            <label class="block font-medium text-white mb-1">
+              Photorealistic Avatar मोड (वीडियो रेंडरिंग):
+            </label>
+            <p class="text-xs text-slate-400 mb-2">
+              वर्तमान मोड: <strong>लोकल रियल-टाइम कैनवास लिप-सिंक (₹0 फ्री)</strong>
+            </p>
+            <select id="avatarEngineSelect" onchange="changeAvatarEngine(this.value)"
+                    class="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white text-xs">
+              <option value="canvas">लोकल लिप-सिंक्ड रियलिस्टिक इंजन (100% फ्री, कोई लिमिट नहीं)</option>
+              <option value="heygencustom">HeyGen Interactive Avatar API (WebRTC Streaming)</option>
+              <option value="didcustom">D-ID Agents WebRTC Streaming API</option>
+              <option value="simli">Simli Face Lip Sync API</option>
+            </select>
+            
+            <div id="streamingApiCreds" class="hidden mt-3 pt-3 border-t border-white/10 space-y-2">
+              <input id="streamingApiKeyInput" type="password" placeholder="Streaming Avatar API Key दर्ज करें..."
+                     class="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white text-xs">
+              <input id="streamingAvatarIdInput" type="text" placeholder="Avatar ID / Session ID दर्ज करें..."
+                     class="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white text-xs">
+            </div>
+          </div>
+
+          <!-- Voice & Speech Rate Settings -->
+          <div class="p-3 rounded-xl bg-slate-900 border border-white/10 space-y-3">
+            <label class="block font-medium text-white">हिंदी वॉइस सेटिंग्स (Hindi Voice):</label>
+            <div>
+              <span class="text-xs text-slate-400 block mb-1">आवाज़ चयन (Voice Option):</span>
+              <select id="voiceSelector" class="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-2 text-white text-xs">
+                <!-- Dynamically populated with Hindi / Natural voices -->
+              </select>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs text-slate-400 mb-1">
+                <span>बोलने की गति (Speech Rate):</span>
+                <span id="rateValueLabel">1.0x</span>
+              </div>
+              <input id="speechRateSlider" type="range" min="0.7" max="1.3" step="0.05" value="1.0"
+                     class="w-full accent-rose-500" oninput="updateSpeechRate(this.value)">
+            </div>
+          </div>
+
+          <!-- Continuous Conversation Toggle -->
+          <div class="p-3 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-between">
+            <div>
+              <span class="font-medium text-white block text-xs sm:text-sm">लगातार बातचीत (Hands-free Mode)</span>
+              <span class="text-[11px] text-slate-400">Priyanka के बोलने के बाद माइक खुद शुरू हो</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input id="continuousModeToggle" type="checkbox" class="sr-only peer">
+              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-rose-600"></div>
+            </label>
+          </div>
+
+        </div>
+
+        <div class="mt-5 pt-3 border-t border-white/10 flex justify-end gap-2">
+          <button onclick="saveSettings()" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-medium text-xs sm:text-sm">
+            सेव करें
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 6: CUSTOM PHOTO UPLOADER (DP और वीडियो कॉल के लिए फोटो बदलें) -->
+    <div id="photoModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+      <div class="glass-panel w-full max-w-md rounded-2xl border border-white/20 p-5 shadow-2xl flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-image text-rose-400 text-lg"></i>
+            <h3 class="text-lg font-bold text-white">प्रियंका की फोटो और DP बदलें</h3>
+          </div>
+          <button onclick="toggleModal('photoModal')" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-300 mt-2">
+          आप यहाँ से कोई भी फोटो अपलोड कर सकते हैं। वही फोटो प्रियंका की <strong>DP (Profile)</strong> और <strong>वीडियो कॉलिंग स्क्रीन (Live Avatar)</strong> में तुरंत दिखाई देगी।
+        </p>
+
+        <!-- Preview Circle -->
+        <div class="mt-4 flex flex-col items-center justify-center">
+          <div class="w-28 h-28 rounded-full ring-4 ring-rose-500/40 overflow-hidden shadow-2xl bg-slate-800 mb-2">
+            <img id="customPhotoPreview" src="WhatsApp%20Image%202026-10-27%20at%2012.12.52%20PM.jpeg" 
+                 onerror="this.src='https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80'"
+                 alt="Avatar Preview" class="w-full h-full object-cover">
+          </div>
+          <span class="text-[11px] text-slate-400">वर्तमान सक्रिय फोटो (Active Preview)</span>
+        </div>
+
+        <!-- File Upload from Device -->
+        <div class="mt-4">
+          <label class="block text-xs font-medium text-slate-200 mb-1">
+            गैलरी या डिवाइस से फोटो चुनें:
+          </label>
+          <input type="file" id="photoFileInput" accept="image/*" onchange="handleFileSelect(event)"
+                 class="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-600 file:text-white hover:file:bg-rose-500 cursor-pointer bg-slate-900 rounded-xl border border-white/10">
+        </div>
+
+        <!-- OR Image URL -->
+        <div class="mt-3">
+          <label class="block text-xs font-medium text-slate-200 mb-1">
+            या इंटरनेट से इमेज का URL डालें:
+          </label>
+          <div class="flex gap-2">
+            <input id="photoUrlInput" type="text" placeholder="https://example.com/photo.jpg" 
+                   class="flex-1 bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500">
+            <button onclick="applyUrlPhoto()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-medium border border-white/10">
+              लागू करें
+            </button>
+          </div>
+        </div>
+
+        <!-- Reset Button -->
+        <div class="mt-5 pt-3 border-t border-white/10 flex justify-between items-center">
+          <button onclick="resetDefaultPhoto()" class="text-xs text-slate-400 hover:text-rose-400 underline">
+            डिफ़ॉल्ट फोटो पर लौटें
+          </button>
+          <button onclick="toggleModal('photoModal')" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-medium">
+            पूर्ण हुआ
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 5: COMPLETE TECHNICAL ARCHITECTURE & ANDROID APK GUIDE (हिंदी में) -->
+    <div id="guideModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+      <div class="glass-panel w-full max-w-2xl rounded-2xl border border-white/20 p-5 sm:p-6 shadow-2xl flex flex-col max-h-[88vh] overflow-y-auto">
+        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-graduation-cap text-rose-400 text-xl"></i>
+            <h3 class="text-lg font-bold text-white">तकनीकी गाइड, फ्री टियर व Android APK</h3>
+          </div>
+          <button onclick="toggleModal('guideModal')" class="text-slate-400 hover:text-white">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="mt-4 space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+          
+          <div class="p-3.5 rounded-xl bg-slate-900 border-l-4 border-rose-500">
+            <h4 class="font-bold text-white text-sm mb-1">1. ₹0 फ्री टियर और वास्तविक तकनीकी सीमाएं (Honest Assessment)</h4>
+            <p>
+              एक वास्तविक इंसान का 100% लाइव वीडियो कॉल जैसा चेहरा बिना किसी सर्वर लागत के चलाना दुनिया के किसी भी इंजन के लिए मुमकिन नहीं होता, क्योंकि प्रति मिनट 30 फ्रेम्स का डीपफेक या नर्वल वीडियो रेंडरिंग हाई-एंड GPU मांगता है।
+            </p>
+            <ul class="list-disc list-inside mt-2 space-y-1 text-slate-300">
+              <li><strong>यह प्रोटोटाइप (₹0 फ्री):</strong> इसमें हमने एक प्राकृतिक भारतीय महिला का वास्तविक फोटोरियलिस्टिक पोर्ट्रेट कैनवास बनाया है, जो आवाज़ के आयाम (Audio FFT/Amplitude) के अनुसार <strong>रियल-टाइम लिप-सिंक, प्राकृतिक पलकें झपकाना (Blinking) और हेड-टिल्ट</strong> करता है।</li>
+              <li><strong>कमर्शियल 100% Real-Time Streaming AI Avatar:</strong> इसके लिए <strong>HeyGen Streaming Avatar API</strong>, <strong>D-ID Real-Time Agents</strong> या <strong>Simli AI</strong> का उपयोग किया जाता है। इनके <em>Free Trials</em> उपलब्ध हैं और इस ऐप की सेटिंग्स में सीधा API Key डालने का प्रावधान दिया गया है।</li>
+            </ul>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-900 border-l-4 border-blue-500">
+            <h4 class="font-bold text-white text-sm mb-1">2. वॉइस और AI ब्रेन का एकीकरण (Integration)</h4>
+            <ul class="list-disc list-inside space-y-1">
+              <li><strong>AI Brain:</strong> Google Gemini 3 Flash (तेज़ गति, शून्य विलंबता, हिंदी व हिंग्लिश समझ में सर्वश्रेष्ठ)।</li>
+              <li><strong>Speech-to-Text:</strong> HTML5 Web Speech Recognition API (मोबाइल क्रोम व वेबव्यू में हिंदी <code class="text-rose-400">hi-IN</code> को बिना किसी शुल्क सपोर्ट करता है)।</li>
+              <li><strong>Text-to-Speech:</strong> सिस्टम का नेचुरल फीमेल हिंदी वॉइस सिंथेसाइज़र (Google हिन्दी/Lekha)।</li>
+            </ul>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-900 border-l-4 border-emerald-500">
+            <h4 class="font-bold text-white text-sm mb-1">3. Android Mobile Automation (YouTube, Google, WhatsApp)</h4>
+            <p>
+              वेब सिक्योरिटी प्रतिबंधों (Sandbox) के कारण ब्राउज़र सीधे आपके फोन की इंटरनल सेटिंग्स नहीं बदल सकता। इसलिए प्रियंका वास्तविक डीप-लिंकिंग (Universal Deep Links) का उपयोग करती है:
+            </p>
+            <ul class="list-disc list-inside mt-1 space-y-1">
+              <li>"YouTube खोलो" → सीधे YouTube App या वेब को वांछित गाने/वीडियो के साथ खोलता है।</li>
+              <li>"Google खोलो" → सीधे Google Search क्वेरी पर ले जाता है।</li>
+              <li>"रिमाइंडर लगाओ" → ब्राउज़र नोटिफिकेशन और लोकल टास्क शेड्यूलर को ट्रिगर करता है।</li>
+            </ul>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-900 border-l-4 border-amber-500">
+            <h4 class="font-bold text-white text-sm mb-1">4. इसे Android APK में कैसे बदलें? (3 आसान चरण)</h4>
+            <ol class="list-decimal list-inside space-y-1.5">
+              <li><strong>विधि 1 (बिना कोडिंग - PWA Install):</strong> अपने Android फोन के Chrome में इस पेज को खोलें, ऊपर 3-डॉट मेनू पर क्लिक करें और <strong>"Add to Home Screen" (ऐप इंस्टॉल करें)</strong> चुनें। यह पूरी स्क्रीन पर बिना URL बार के फुल-स्क्रीन ओरिजिनल ऐप जैसा चलेगा।</li>
+              <li><strong>विधि 2 (Capacitor / Cordova के साथ असली .APK बनाना):</strong>
+                <pre class="bg-black/50 p-2 rounded text-[11px] text-emerald-300 overflow-x-auto mt-1 font-mono">
+npm init @capacitor/app priyanka-ai
+cd priyanka-ai
+# इस index.html को www/index.html में कॉपी करें
+npx cap add android
+npx cap open android # Android Studio में Run करके .apk जनरेट करें</pre>
+              </li>
+            </ol>
+          </div>
+
+        </div>
+
+        <div class="mt-5 pt-3 border-t border-white/10 flex justify-end">
+          <button onclick="toggleModal('guideModal')" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs sm:text-sm font-medium">
+            समझ गया, बंद करें
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toastNotification" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 transform -translate-y-12 opacity-0 pointer-events-none transition-all duration-300 px-4 py-2 rounded-full glass-panel border border-rose-500/40 text-xs sm:text-sm text-white shadow-2xl flex items-center gap-2">
+      <i id="toastIcon" class="fa-solid fa-bell text-rose-400"></i>
+      <span id="toastMessage">अलर्ट संदेश</span>
+    </div>
+
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT LOGIC -->
+  <script>
+    /**
+     * PRIYANKA AI - ARCHITECTURE & CORE CONTROLLER
+     * Features:
+     * 1. Photorealistic Human Canvas Lip-sync & Eye-movement Engine.
+     * 2. Web Speech API (Hindi Speech Recognition & Female TTS).
+     * 3. Google Gemini 3 Flash API Brain with Search Grounding & Memory.
+     * 4. Android Deep Links & Action Automation (Google, YouTube, WhatsApp, To-do, PDF).
+     */
+
+    // --- State Variables ---
+    let appState = {
+      isListening: false,
+      isSpeaking: false,
+      isThinking: false,
+      continuousMode: false,
+      speechRate: 1.0,
+      selectedVoice: null,
+      lastPriyankaResponse: "नमस्ते! मैं प्रियंका हूँ, आपकी पर्सनल एआई असिस्टेंट। मैं आपकी क्या मदद कर सकती हूँ?",
+      generatedDocument: "",
+      tasks: [],
+      chatHistory: [
+        {
+          role: "model",
+          parts: [{ text: "नमस्ते! मैं प्रियंका हूँ, आपकी पर्सनल एआई असिस्टेंट। मुझसे हिंदी या हिंग्लिश में कोई भी सवाल पूछें, गाने लगवाएं या काम की लिस्ट बनवाएं।" }]
+        }
+      ]
+    };
+
+    // System prompt defining Priyanka's persona, language, tone, and action capabilities
+    const PRIYANKA_SYSTEM_INSTRUCTION = `
+आप "Priyanka" (प्रियंका) हैं - एक आधुनिक, बुद्धिमान, विनम्र और वास्तविक भारतीय पर्सनल AI असिस्टेंट।
+नियम और व्यवहार:
+1. भाषा: प्राकृतिक, मधुर और स्पष्ट हिंदी बोलें (जरूरत पड़ने पर Hinglish या सामान्य अंग्रेजी शब्दों का स्वाभाविक प्रयोग करें)।
+2. संक्षिप्त और जीवंत बातचीत: वीडियो कॉल जैसे छोटे, स्पष्ट और प्रत्यक्ष वाक्यों में उत्तर दें। बहुत लंबे पैराग्राफ बोलने से बचें ताकि आवाज़ प्राकृतिक लगे।
+3. एक्शन डिटेक्शन (Action Triggering):
+   - यदि उपयोगकर्ता YouTube खोलने को कहे: उत्तर में "[ACTION:OPEN_YOUTUBE:सर्च_क्वेरी]" अवश्य जोड़ें।
+   - यदि Google पर सर्च करने को कहे: उत्तर में "[ACTION:OPEN_GOOGLE:सर्च_क्वेरी]" जोड़ें।
+   - यदि टास्क/काम की लिस्ट बनाने को कहे: उत्तर में "[ACTION:ADD_TASK:कार्य_का_विवरण]" जोड़ें।
+   - यदि कोई विस्तृत बिजनेस प्रपोजल, ईमेल, रिपोर्ट या पोस्ट लिखने को कहे: उत्तर में संक्षिप्त परिचय दें और "[ACTION:CREATE_DOC:पूर्ण_दस्तावेज़]" जोड़ें।
+4. हमेशा सहायक, मित्रवत और आदरपूर्वक ("जी", "आप") बात करें।
+5. कभी भी खुद को केवल एक टेक्स्ट मॉडल न कहें, आप प्रियंका - पर्सनल एआई असिस्टेंट हैं।
+`;
+
+    // --- DOM Elements ---
+    const avatarCanvas = document.getElementById('avatarCanvas');
+    const ctx = avatarCanvas.getContext('2d');
+    const waveCanvas = document.getElementById('waveCanvas');
+    const waveCtx = waveCanvas.getContext('2d');
+    const mainMicBtn = document.getElementById('mainMicBtn');
+    const micRingPulse = document.getElementById('micRingPulse');
+    const micIcon = document.getElementById('micIcon');
+    const stateBadge = document.getElementById('stateBadge');
+    const stateText = document.getElementById('stateText');
+    const stateIcon = document.getElementById('stateIcon');
+    const speechBubble = document.getElementById('speechBubble');
+    const speechBubbleText = document.getElementById('speechBubbleText');
+    const chatHistoryContainer = document.getElementById('chatHistory');
+    const voiceSelector = document.getElementById('voiceSelector');
+    const headerProfilePic = document.getElementById('headerProfilePic');
+    const customPhotoPreview = document.getElementById('customPhotoPreview');
+
+    // --- Audio Synthesis & Speech Recognition References ---
+    let recognition = null;
+    let synth = window.speechSynthesis;
+    let audioContext = null;
+    let analyser = null;
+    let dataArray = null;
+
+    // --- Photorealistic Avatar Graphics Engine ---
+    // Updated with your provided image as default
+    const DEFAULT_AVATAR_URL = "WhatsApp%20Image%202026-10-27%20at%2012.12.52%20PM.jpeg";
+    const avatarImage = new Image();
+    avatarImage.crossOrigin = "anonymous";
+    
+    // Check if user has previously saved a custom photo in localStorage
+    const savedCustomPhoto = localStorage.getItem('priyanka_custom_avatar_img');
+    avatarImage.src = savedCustomPhoto || DEFAULT_AVATAR_URL;
+
+    // Fallback if local file path is blocked or unavailable
+    avatarImage.onerror = () => {
+      if (avatarImage.src !== DEFAULT_AVATAR_URL) {
+        avatarImage.src = DEFAULT_AVATAR_URL;
+      }
+    };
+
+    let avatarData = {
+      loaded: false,
+      mouthOpen: 0,
+      blinkProgress: 0,
+      isBlinking: false,
+      lastBlinkTime: Date.now(),
+      headTilt: 0,
+      headTargetTilt: 0
+    };
+
+    avatarImage.onload = () => {
+      avatarData.loaded = true;
+      syncAvatarImages(avatarImage.src);
+      resizeCanvas();
+    };
+
+    function syncAvatarImages(srcUrl) {
+      if (headerProfilePic) headerProfilePic.src = srcUrl;
+      if (customPhotoPreview) customPhotoPreview.src = srcUrl;
+    }
+
+    function openPhotoUploader() {
+      toggleModal('photoModal');
+    }
+
+    // Handle Local File Upload from User's Device
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showToast("कृपया एक वैध फोटो (JPG, PNG) चुनें", "triangle-exclamation");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Data = e.target.result;
+        updateActiveAvatarPhoto(base64Data);
+        showToast("आपकी नई फोटो DP और वीडियो कॉलिंग में सेट हो गई!", "check");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Handle Image URL input
+    function applyUrlPhoto() {
+      const input = document.getElementById('photoUrlInput');
+      const url = input.value.trim();
+      if (!url) {
+        showToast("कृपया एक वैध इमेज URL दर्ज करें", "triangle-exclamation");
+        return;
+      }
+      updateActiveAvatarPhoto(url);
+      input.value = '';
+      showToast("नई इमेज सेट कर दी गई!", "check");
+    }
+
+    // Apply New Photo across Canvas, DP, and LocalStorage
+    function updateActiveAvatarPhoto(photoSrc) {
+      avatarData.loaded = false;
+      avatarImage.src = photoSrc;
+      syncAvatarImages(photoSrc);
+      try {
+        localStorage.setItem('priyanka_custom_avatar_img', photoSrc);
+      } catch (err) {
+        console.warn("Could not save to localStorage (quota reached):", err);
+      }
+    }
+
+    // Reset back to default realistic portrait
+    function resetDefaultPhoto() {
+      updateActiveAvatarPhoto(DEFAULT_AVATAR_URL);
+      try {
+        localStorage.removeItem('priyanka_custom_avatar_img');
+      } catch (e) {}
+      showToast("डिफ़ॉल्ट फोटो रीसेट कर दी गई", "rotate-left");
+    }
+
+    function resizeCanvas() {
+      const container = document.getElementById('interactiveAvatarContainer');
+      if (!container) return;
+      avatarCanvas.width = container.clientWidth || 600;
+      avatarCanvas.height = container.clientHeight || 700;
+      waveCanvas.width = 400;
+      waveCanvas.height = 48;
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // Dynamic Render Loop for Human Micro-movements, Head tilts & Audio Lip-sync
+    function renderAvatar() {
+      if (!avatarData.loaded) {
+        requestAnimationFrame(renderAvatar);
+        return;
+      }
+
+      ctx.clearRect(0, 0, avatarCanvas.width, avatarCanvas.height);
+
+      const now = Date.now();
+      
+      // 1. Natural Blinking logic (Every 3.5 - 6 seconds)
+      if (!avatarData.isBlinking && now - avatarData.lastBlinkTime > 3500 + Math.random() * 2500) {
+        avatarData.isBlinking = true;
+        avatarData.blinkProgress = 0;
+      }
+      if (avatarData.isBlinking) {
+        avatarData.blinkProgress += 0.15;
+        if (avatarData.blinkProgress >= Math.PI) {
+          avatarData.isBlinking = false;
+          avatarData.blinkProgress = 0;
+          avatarData.lastBlinkTime = now;
+        }
+      }
+
+      // 2. Micro Head-Tilts & Breathing motion
+      if (appState.isListening) {
+        avatarData.headTargetTilt = 0.035; // Attentive tilt while listening
+      } else if (appState.isThinking) {
+        avatarData.headTargetTilt = -0.025; // Contemplative tilt
+      } else {
+        avatarData.headTargetTilt = Math.sin(now / 1500) * 0.015;
+      }
+      avatarData.headTilt += (avatarData.headTargetTilt - avatarData.headTilt) * 0.05;
+
+      // 3. Audio Amplitude / Lip-Sync Calculation
+      let currentAudioLevel = 0;
+      if (appState.isSpeaking && analyser && dataArray) {
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < 32; i++) {
+          sum += dataArray[i];
+        }
+        currentAudioLevel = sum / (32 * 255); // 0.0 to 1.0
+      } else if (appState.isSpeaking) {
+        // Fallback procedural mouth fluctuation if audio analyser is not attached
+        currentAudioLevel = (Math.sin(now / 70) * 0.5 + 0.5) * 0.7;
+      }
+
+      // Smooth mouth transition
+      avatarData.mouthOpen += (currentAudioLevel - avatarData.mouthOpen) * 0.35;
+
+      // Draw Main Avatar with transformation matrix
+      ctx.save();
+      const cx = avatarCanvas.width / 2;
+      const cy = avatarCanvas.height / 2;
+      ctx.translate(cx, cy);
+      ctx.rotate(avatarData.headTilt);
+      ctx.translate(-cx, -cy);
+
+      // Draw base photorealistic human image preserving aspect ratio
+      const imgAspect = avatarImage.width / avatarImage.height;
+      const canvasAspect = avatarCanvas.width / avatarCanvas.height;
+      let drawW, drawH, drawX, drawY;
+
+      if (canvasAspect > imgAspect) {
+        drawW = avatarCanvas.width;
+        drawH = avatarCanvas.width / imgAspect;
+        drawX = 0;
+        drawY = (avatarCanvas.height - drawH) / 2;
+      } else {
+        drawH = avatarCanvas.height;
+        drawW = avatarCanvas.height * imgAspect;
+        drawX = (avatarCanvas.width - drawW) / 2;
+        drawY = 0;
+      }
+
+      ctx.drawImage(avatarImage, drawX, drawY, drawW, drawH);
+
+      // Natural Eye Blinks adjusted specifically for this portrait's face geometry
+      if (avatarData.isBlinking) {
+        const eyeCloseFactor = Math.sin(avatarData.blinkProgress);
+        // Face coordinates tuned to the provided portrait
+        const eyeY = drawY + drawH * 0.275;
+        const leftEyeX = drawX + drawW * 0.435;
+        const rightEyeX = drawX + drawW * 0.525;
+        const eyeRadiusX = drawW * 0.038;
+        const eyeRadiusY = drawH * 0.01 * eyeCloseFactor;
+
+        ctx.fillStyle = "rgba(65, 38, 30, 0.9)"; // Skin-tone match for eyelids
+        
+        ctx.beginPath();
+        ctx.ellipse(leftEyeX, eyeY, eyeRadiusX, eyeRadiusY, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.ellipse(rightEyeX, eyeY, eyeRadiusX, eyeRadiusY, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Audio-Driven Lip Opening & Mouth Morph tuned for this portrait's mouth position
+      if (avatarData.mouthOpen > 0.05) {
+        const mouthX = drawX + drawW * 0.485;
+        const mouthY = drawY + drawH * 0.325;
+        const mouthWidth = drawW * 0.045;
+        const mouthHeight = drawH * 0.014 * avatarData.mouthOpen;
+
+        // Inner mouth shadow & lip depth matching the natural red/maroon lipstick
+        ctx.fillStyle = "rgba(90, 20, 32, 0.9)";
+        ctx.beginPath();
+        ctx.ellipse(mouthX, mouthY, mouthWidth, mouthHeight, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Subtle teeth highlight during speech
+        if (avatarData.mouthOpen > 0.2) {
+          ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+          ctx.beginPath();
+          ctx.ellipse(mouthX, mouthY - mouthHeight * 0.25, mouthWidth * 0.45, mouthHeight * 0.2, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      ctx.restore();
+
+      // Render Waveform at bottom
+      renderWaveform();
+
+      requestAnimationFrame(renderAvatar);
+    }
+
+    // Render Audio Visualizer Waves
+    function renderWaveform() {
+      waveCtx.clearRect(0, 0, waveCanvas.width, waveCanvas.height);
+      const w = waveCanvas.width;
+      const h = waveCanvas.height;
+      const centerY = h / 2;
+
+      waveCtx.lineWidth = 2.5;
+      waveCtx.strokeStyle = appState.isSpeaking 
+        ? '#f43f5e' 
+        : (appState.isListening ? '#10b981' : 'rgba(255, 255, 255, 0.2)');
+
+      waveCtx.beginPath();
+      const points = 30;
+      const step = w / points;
+
+      for (let i = 0; i <= points; i++) {
+        const x = i * step;
+        let y = centerY;
+
+        if (appState.isSpeaking || appState.isListening) {
+          const freq = (Date.now() / 150) + i;
+          const amp = appState.isSpeaking ? 16 : 9;
+          y = centerY + Math.sin(freq) * amp * Math.sin((i / points) * Math.PI);
+        } else {
+          y = centerY + Math.sin((Date.now() / 600) + i) * 2;
+        }
+
+        if (i === 0) waveCtx.moveTo(x, y);
+        else waveCtx.lineTo(x, y);
+      }
+      waveCtx.stroke();
+    }
+
+    // Start Avatar rendering on DOM load
+    window.onload = function() {
+      resizeCanvas();
+      initSpeechRecognition();
+      populateVoiceList();
+      if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = populateVoiceList;
+      }
+      loadStoredTasks();
+      requestAnimationFrame(renderAvatar);
+
+      // Add initial welcome to chat
+      appendChatMessage("model", appState.lastPriyankaResponse);
+    };
+
+    // --- Web Speech API (Hindi Speech Recognition) ---
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        showToast("आपके ब्राउज़र में Web Speech API समर्थित नहीं है। कृपया Chrome उपयोग करें।", "exclamation-triangle");
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'hi-IN'; // Hindi primary, understands Hinglish words naturally
+
+      recognition.onstart = function() {
+        setAppState('listening');
+      };
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        if (transcript && transcript.trim()) {
+          handleUserVoiceInput(transcript);
+        }
+      };
+
+      recognition.onerror = function(event) {
+        console.debug("Recognition event:", event.error);
+        if (event.error !== 'no-speech') {
+          showToast("आवाज़ नहीं सुनी जा सकी: " + event.error, "circle-exclamation");
+        }
+        setAppState('idle');
+      };
+
+      recognition.onend = function() {
+        if (!appState.isThinking && !appState.isSpeaking) {
+          setAppState('idle');
+        }
+      };
+    }
+
+    // Toggle Voice Recognition
+    function toggleVoiceInput() {
+      if (!recognition) {
+        initSpeechRecognition();
+        if (!recognition) return;
+      }
+
+      if (appState.isSpeaking) {
+        stopPriyankaSpeech();
+      }
+
+      if (appState.isListening) {
+        recognition.stop();
+        setAppState('idle');
+      } else {
+        try {
+          recognition.start();
+        } catch (e) {
+          console.debug(e);
+          recognition.stop();
+        }
+      }
+    }
+
+    // --- Natural Hindi Female Text-To-Speech (TTS) ---
+    function populateVoiceList() {
+      if (!synth) return;
+      const voices = synth.getVoices();
+      voiceSelector.innerHTML = '';
+
+      // Prefer Hindi Voices (hi-IN) or Indian English (en-IN)
+      let selectedDefault = null;
+      voices.forEach((v, idx) => {
+        const option = document.createElement('option');
+        option.value = idx;
+        option.textContent = `${v.name} (${v.lang})`;
+
+        // Check if Hindi
+        if (v.lang.includes('hi') || v.lang.includes('IN') || v.name.toLowerCase().includes('hindi')) {
+          if (!selectedDefault) selectedDefault = v;
+          option.textContent = `⭐ ` + option.textContent;
+        }
+        voiceSelector.appendChild(option);
+      });
+
+      if (selectedDefault) {
+        appState.selectedVoice = selectedDefault;
+        voiceSelector.value = voices.indexOf(selectedDefault);
+      } else if (voices.length > 0) {
+        appState.selectedVoice = voices[0];
+      }
+    }
+
+    function speakPriyanka(text) {
+      if (!synth) return;
+      stopPriyankaSpeech();
+
+      // Clean out action triggers from spoken voice text
+      const cleanVoiceText = text
+        .replace(/\[ACTION:[^\]]+\]/g, '')
+        .replace(/[*_#`]/g, '')
+        .trim();
+
+      if (!cleanVoiceText) return;
+
+      const utterance = new SpeechSynthesisUtterance(cleanVoiceText);
+      utterance.lang = 'hi-IN';
+      utterance.rate = appState.speechRate;
+      utterance.pitch = 1.15; // Slightly higher pitch for natural friendly female tone
+
+      // Select assigned female or Hindi voice
+      if (appState.selectedVoice) {
+        utterance.voice = appState.selectedVoice;
+      }
+
+      utterance.onstart = function() {
+        setAppState('speaking');
+        speechBubble.classList.remove('hidden');
+        speechBubbleText.textContent = cleanVoiceText;
+      };
+
+      utterance.onend = function() {
+        setAppState('idle');
+        speechBubble.classList.add('hidden');
+
+        // Continuous conversational flow if enabled
+        if (appState.continuousMode) {
+          setTimeout(() => {
+            if (!appState.isSpeaking && !appState.isListening) {
+              toggleVoiceInput();
+            }
+          }, 600);
+        }
+      };
+
+      utterance.onerror = function(e) {
+        console.debug("TTS error:", e);
+        setAppState('idle');
+        speechBubble.classList.add('hidden');
+      };
+
+      synth.speak(utterance);
+    }
+
+    function stopPriyankaSpeech() {
+      if (synth && synth.speaking) {
+        synth.cancel();
+      }
+      setAppState('idle');
+      speechBubble.classList.add('hidden');
+    }
+
+    function repeatLastAnswer() {
+      if (appState.lastPriyankaResponse) {
+        speakPriyanka(appState.lastPriyankaResponse);
+      }
+    }
+
+    // --- State Manager (Listening, Thinking, Speaking, Idle) ---
+    function setAppState(state) {
+      appState.isListening = (state === 'listening');
+      appState.isThinking = (state === 'thinking');
+      appState.isSpeaking = (state === 'speaking');
+
+      const statusDot = document.getElementById('statusIndicatorDot');
+
+      if (state === 'listening') {
+        stateBadge.className = "px-3.5 py-1.5 rounded-full glass-panel border border-emerald-500/50 text-xs sm:text-sm font-medium tracking-wide flex items-center gap-2 shadow-2xl bg-emerald-950/40";
+        stateText.textContent = "सुन रही हूँ... बोलिए";
+        stateIcon.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
+        statusDot.className = "absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-400 border-2 border-slate-900 rounded-full animate-ping";
+        micRingPulse.classList.remove('hidden');
+        mainMicBtn.classList.add('ring-emerald-400');
+      } else if (state === 'thinking') {
+        stateBadge.className = "px-3.5 py-1.5 rounded-full glass-panel border border-amber-500/50 text-xs sm:text-sm font-medium tracking-wide flex items-center gap-2 shadow-2xl bg-amber-950/40";
+        stateText.textContent = "सोच रही हूँ...";
+        stateIcon.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse";
+        statusDot.className = "absolute bottom-0 right-0 w-3.5 h-3.5 bg-amber-400 border-2 border-slate-900 rounded-full";
+        micRingPulse.classList.add('hidden');
+      } else if (state === 'speaking') {
+        stateBadge.className = "px-3.5 py-1.5 rounded-full glass-panel border border-rose-500/50 text-xs sm:text-sm font-medium tracking-wide flex items-center gap-2 shadow-2xl bg-rose-950/40";
+        stateText.textContent = "प्रियंका बोल रही है";
+        stateIcon.className = "w-2.5 h-2.5 rounded-full bg-rose-400 animate-pulse";
+        statusDot.className = "absolute bottom-0 right-0 w-3.5 h-3.5 bg-rose-500 border-2 border-slate-900 rounded-full";
+        micRingPulse.classList.add('hidden');
+      } else {
+        // Idle
+        stateBadge.className = "px-3.5 py-1.5 rounded-full glass-panel border border-white/20 text-xs sm:text-sm font-medium tracking-wide flex items-center gap-2 shadow-2xl";
+        stateText.textContent = "आपकी बात सुनने के लिए तैयार";
+        stateIcon.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+        statusDot.className = "absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-900 rounded-full";
+        micRingPulse.classList.add('hidden');
+        mainMicBtn.classList.remove('ring-emerald-400');
+      }
+    }
+
+    // --- Google Gemini 3 Flash API Brain Integration ---
+    async function callGeminiBrain(userPrompt) {
+      setAppState('thinking');
+
+      // Add user turn to conversation history
+      appState.chatHistory.push({
+        role: "user",
+        parts: [{ text: userPrompt }]
+      });
+
+      appendChatMessage("user", userPrompt);
+
+      // Check for user configured API key or fallback to platform runtime injection
+      const storedKey = localStorage.getItem('priyanka_api_key') || "";
+      const apiKey = storedKey; // If empty string, Canvas platform provides it at runtime
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: appState.chatHistory,
+        tools: [{ "google_search": {} }], // Enable search grounding for real-time web info
+        systemInstruction: {
+          parts: [{ text: PRIYANKA_SYSTEM_INSTRUCTION }]
+        }
+      };
+
+      try {
+        const response = await fetchWithRetry(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        const candidate = result.candidates?.[0];
+        const answerText = candidate?.content?.parts?.[0]?.text;
+
+        if (answerText) {
+          appState.chatHistory.push({
+            role: "model",
+            parts: [{ text: answerText }]
+          });
+
+          appState.lastPriyankaResponse = answerText;
+
+          // Parse and execute automation actions (Google, YouTube, Tasks, Documents)
+          handleAutomatedActions(answerText);
+
+          // Append to visual chat
+          appendChatMessage("model", answerText);
+
+          // Speak reply with realistic lip syncing
+          speakPriyanka(answerText);
+        } else {
+          throw new Error("Invalid Gemini response");
+        }
+      } catch (err) {
+        console.error("Gemini API Error:", err);
+        const fallbackText = "माफ़ कीजियेगा, सर्वर से जुड़ने में समस्या हुई। कृपया दोबारा पूछें या सेटिंग्स में अपनी API Key जांचें।";
+        appState.lastPriyankaResponse = fallbackText;
+        appendChatMessage("model", fallbackText);
+        speakPriyanka(fallbackText);
+      }
+    }
+
+    // Exponential Backoff Fetch Helper
+    async function fetchWithRetry(url, options, maxRetries = 3) {
+      let delay = 1000;
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const res = await fetch(url, options);
+          if (res.ok) return res;
+          if (res.status === 429 || res.status >= 500) {
+            await new Promise(r => setTimeout(r, delay));
+            delay *= 2;
+            continue;
+          }
+          return res;
+        } catch (err) {
+          if (i === maxRetries - 1) throw err;
+          await new Promise(r => setTimeout(r, delay));
+          delay *= 2;
+        }
+      }
+      return fetch(url, options);
+    }
+
+    // --- Personal Assistant Automation (Deep Links, Tasks, Reminders, Docs) ---
+    function handleAutomatedActions(responseText) {
+      
+      // 1. YouTube Deep Link
+      const ytMatch = responseText.match(/\[ACTION:OPEN_YOUTUBE:(.*?)\]/);
+      if (ytMatch) {
+        const query = ytMatch[1].trim();
+        showToast(`YouTube खोला जा रहा है: "${query}"`, "brands fa-youtube");
+        setTimeout(() => {
+          window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
+        }, 1200);
+      }
+
+      // 2. Google Search Deep Link
+      const googleMatch = responseText.match(/\[ACTION:OPEN_GOOGLE:(.*?)\]/);
+      if (googleMatch) {
+        const query = googleMatch[1].trim();
+        showToast(`Google पर खोजा जा रहा है: "${query}"`, "magnifying-glass");
+        setTimeout(() => {
+          window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+        }, 1200);
+      }
+
+      // 3. Add to Task / Reminder List
+      const taskMatch = responseText.match(/\[ACTION:ADD_TASK:(.*?)\]/);
+      if (taskMatch) {
+        const taskTitle = taskMatch[1].trim();
+        addTask(taskTitle);
+        showToast(`टास्क जोड़ा गया: "${taskTitle}"`, "circle-check");
+      }
+
+      // 4. Generate & Save Document / Report
+      const docMatch = responseText.match(/\[ACTION:CREATE_DOC:([\s\S]*?)\]/);
+      if (docMatch) {
+        const docBody = docMatch[1].trim();
+        appState.generatedDocument = docBody;
+        document.getElementById('docContentArea').textContent = docBody;
+        document.getElementById('docBadge').classList.remove('hidden');
+        showToast("नया दस्तावेज़ तैयार किया गया!", "file-lines");
+      }
+    }
+
+    // --- Task Manager Functions ---
+    function addTask(title) {
+      if (!title) return;
+      const task = {
+        id: Date.now(),
+        text: title,
+        completed: false,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      appState.tasks.unshift(task);
+      saveTasksToStorage();
+      renderTasks();
+    }
+
+    function addTaskFromInput() {
+      const input = document.getElementById('newTaskInput');
+      const text = input.value.trim();
+      if (text) {
+        addTask(text);
+        input.value = '';
+      }
+    }
+
+    function toggleTask(id) {
+      const task = appState.tasks.find(t => t.id === id);
+      if (task) {
+        task.completed = !task.completed;
+        saveTasksToStorage();
+        renderTasks();
+      }
+    }
+
+    function deleteTask(id) {
+      appState.tasks = appState.tasks.filter(t => t.id !== id);
+      saveTasksToStorage();
+      renderTasks();
+    }
+
+    function clearCompletedTasks() {
+      appState.tasks = appState.tasks.filter(t => !t.completed);
+      saveTasksToStorage();
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+
+      if (appState.tasks.length === 0) {
+        list.innerHTML = `
+          <div class="text-center py-6 text-slate-400 text-xs">
+            कोई सक्रिय कार्य नहीं है। "Priyanka, आज की लिस्ट बनाओ" बोलें।
+          </div>`;
+      } else {
+        appState.tasks.forEach(t => {
+          const item = document.createElement('div');
+          item.className = `p-3 rounded-xl border flex items-center justify-between gap-3 transition-colors ${
+            t.completed ? 'bg-slate-900/40 border-white/5 opacity-60' : 'bg-slate-900 border-white/10'
+          }`;
+          item.innerHTML = `
+            <div class="flex items-center gap-3 flex-1 overflow-hidden">
+              <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id})"
+                     class="w-4 h-4 rounded accent-rose-500 cursor-pointer">
+              <span class="text-xs sm:text-sm text-slate-200 truncate ${t.completed ? 'line-through text-slate-400' : ''}">${t.text}</span>
+            </div>
+            <span class="text-[10px] text-slate-400">${t.time}</span>
+            <button onclick="deleteTask(${t.id})" class="text-slate-500 hover:text-red-400 text-xs p-1">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          `;
+          list.appendChild(item);
+        });
+      }
+
+      const pending = appState.tasks.filter(t => !t.completed).length;
+      document.getElementById('taskCountText').textContent = `${pending} कार्य शेष`;
+    }
+
+    function saveTasksToStorage() {
+      try {
+        sessionStorage.setItem('priyanka_tasks', JSON.stringify(appState.tasks));
+      } catch (e) {}
+    }
+
+    function loadStoredTasks() {
+      try {
+        const stored = sessionStorage.getItem('priyanka_tasks');
+        if (stored) {
+          appState.tasks = JSON.parse(stored);
+          renderTasks();
+        }
+      } catch (e) {}
+    }
+
+    // --- Document Viewer, Copy, Print PDF ---
+    function copyDocContent() {
+      const text = document.getElementById('docContentArea').textContent;
+      if (!text) return;
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showToast("दस्तावेज़ क्लिपबोर्ड पर कॉपी किया गया!", "check");
+    }
+
+    function printOrExportPDF() {
+      window.print();
+    }
+
+    // --- UI Interactions & Chat ---
+    function handleUserVoiceInput(transcript) {
+      callGeminiBrain(transcript);
+    }
+
+    function sendQuickPrompt(promptText) {
+      callGeminiBrain(promptText);
+    }
+
+    function sendTextMessage() {
+      const input = document.getElementById('chatTextInput');
+      const text = input.value.trim();
+      if (text) {
+        input.value = '';
+        callGeminiBrain(text);
+      }
+    }
+
+    function handleChatKeyPress(e) {
+      if (e.key === 'Enter') {
+        sendTextMessage();
+      }
+    }
+
+    function appendChatMessage(role, text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `flex flex-col ${role === 'user' ? 'items-end' : 'items-start'} mb-3`;
+      
+      const cleanText = text.replace(/\[ACTION:[^\]]+\]/g, '').trim();
+
+      msgDiv.innerHTML = `
+        <span class="text-[10px] text-slate-400 mb-1 px-1">
+          ${role === 'user' ? 'आप' : 'प्रियंका'}
+        </span>
+        <div class="max-w-[85%] p-3 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+          role === 'user' 
+            ? 'bg-rose-600 text-white rounded-br-none' 
+            : 'bg-slate-800 text-slate-100 border border-white/10 rounded-bl-none'
+        }">
+          ${cleanText}
+        </div>
+      `;
+      chatHistoryContainer.appendChild(msgDiv);
+      chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+    }
+
+    function endCallAndReset() {
+      stopPriyankaSpeech();
+      if (recognition && appState.isListening) {
+        recognition.stop();
+      }
+      showToast("कॉल समाप्त हुई", "phone-slash");
+      appState.chatHistory = [
+        {
+          role: "model",
+          parts: [{ text: "कॉल रीसेट की गई। नमस्ते, मैं प्रियंका हूँ।" }]
+        }
+      ];
+      chatHistoryContainer.innerHTML = '';
+      appendChatMessage("model", "कॉल रीसेट की गई। नमस्ते! मैं प्रियंका हूँ, जब भी ज़रूरत हो माइक दबाकर बात करें।");
+    }
+
+    // Modal Controller
+    function toggleModal(modalId) {
+      const el = document.getElementById(modalId);
+      if (el) {
+        el.classList.toggle('hidden');
+      }
+    }
+
+    // Toast Alert
+    function showToast(message, icon = "bell") {
+      const toast = document.getElementById('toastNotification');
+      const msg = document.getElementById('toastMessage');
+      const ico = document.getElementById('toastIcon');
+
+      msg.textContent = message;
+      ico.className = `fa-solid fa-${icon} text-rose-400`;
+
+      toast.classList.remove('opacity-0', '-translate-y-12', 'pointer-events-none');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-12', 'pointer-events-none');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 3500);
+    }
+
+    // Camera PIP toggle
+    async function toggleUserCamera() {
+      const userVideo = document.getElementById('userSelfVideo');
+      const placeholder = document.getElementById('userCamPlaceholder');
+
+      if (!userVideo.srcObject) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          userVideo.srcObject = stream;
+          userVideo.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+        } catch (err) {
+          showToast("कैमरा एक्सेस नहीं मिला", "video-slash");
+        }
+      } else {
+        const stream = userVideo.srcObject;
+        stream.getTracks().forEach(track => track.stop());
+        userVideo.srcObject = null;
+        userVideo.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+      }
+    }
+
+    // Settings actions
+    function updateSpeechRate(val) {
+      appState.speechRate = parseFloat(val);
+      document.getElementById('rateValueLabel').textContent = `${val}x`;
+    }
+
+    function changeAvatarEngine(val) {
+      const creds = document.getElementById('streamingApiCreds');
+      if (val !== 'canvas') {
+        creds.classList.remove('hidden');
+        showToast("Streaming Avatar API मोड चयनित", "video");
+      } else {
+        creds.classList.add('hidden');
+      }
+    }
+
+    function saveSettings() {
+      const keyInput = document.getElementById('userApiKeyInput').value.trim();
+      if (keyInput) {
+        localStorage.setItem('priyanka_api_key', keyInput);
+      }
+      
+      const vIdx = voiceSelector.value;
+      const voices = synth.getVoices();
+      if (voices[vIdx]) {
+        appState.selectedVoice = voices[vIdx];
+      }
+
+      appState.continuousMode = document.getElementById('continuousModeToggle').checked;
+
+      toggleModal('settingsModal');
+      showToast("सेटिंग्स सुरक्षित कर दी गईं", "check");
+    }
+  </script>
+</body>
+</html>
